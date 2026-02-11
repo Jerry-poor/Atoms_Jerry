@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,11 @@ import { useLoginWithPassword } from "@/lib/auth";
 
 function LoginPageContent() {
   const router = useRouter();
-  const sp = useSearchParams();
-  const returnTo = sp.get("returnTo") || "/app";
+  const returnTo = useMemo(() => {
+    if (typeof window === "undefined") return "/app";
+    const value = new URLSearchParams(window.location.search).get("returnTo");
+    return value || "/app";
+  }, []);
   const oauthGoogle = "/api/auth/oauth/google/start";
   const oauthGithub = "/api/auth/oauth/github/start";
 
@@ -103,9 +106,5 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="mx-auto max-w-xl px-4 py-12 text-sm text-muted-foreground">Loading...</div>}>
-      <LoginPageContent />
-    </Suspense>
-  );
+  return <LoginPageContent />;
 }

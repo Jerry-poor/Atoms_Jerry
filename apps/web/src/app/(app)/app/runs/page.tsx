@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppTopNav } from "@/components/top-nav";
 import { Button } from "@/components/ui/button";
@@ -32,10 +31,14 @@ export default function RunsPage() {
   });
   const runs = useRunsFiltered({ projectId: activeProjectId });
   const create = useCreateRun();
-  const sp = useSearchParams();
-  const [input, setInput] = useState(() => sp.get("prompt") || "");
+  const [input, setInput] = useState("");
   const [mode, setMode] = useState<"engineer" | "team">("team");
   const [userRulesText, setUserRulesText] = useState("");
+
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("prompt");
+    if (value) setInput(value);
+  }, []);
 
   return (
     <div>

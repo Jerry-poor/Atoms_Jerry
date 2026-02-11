@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,10 @@ import { useResetPassword } from "@/lib/auth";
 
 function ResetPasswordPageContent() {
   const router = useRouter();
-  const sp = useSearchParams();
-  const token = sp.get("token") || "";
+  const token = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("token") || "";
+  }, []);
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -104,9 +106,5 @@ function ResetPasswordPageContent() {
 }
 
 export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div className="mx-auto max-w-xl px-4 py-12 text-sm text-muted-foreground">Loading...</div>}>
-      <ResetPasswordPageContent />
-    </Suspense>
-  );
+  return <ResetPasswordPageContent />;
 }

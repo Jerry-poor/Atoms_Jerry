@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AppTopNav } from "@/components/top-nav";
@@ -83,7 +83,6 @@ function roleById(id: TeamRoleId) {
 
 export default function WorkspacePage() {
   const router = useRouter();
-  const sp = useSearchParams();
 
   const me = useMe();
   const projects = useProjects();
@@ -98,7 +97,7 @@ export default function WorkspacePage() {
   const runs = useRunsFiltered({ projectId: activeProjectId });
   const createRun = useCreateRun();
 
-  const [prompt, setPrompt] = useState(() => sp.get("prompt") || "");
+  const [prompt, setPrompt] = useState("");
   const [userRulesText, setUserRulesText] = useState("");
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -109,7 +108,11 @@ export default function WorkspacePage() {
 
   useEffect(() => {
     // When landing from marketing `/app?prompt=...`, keep URL clean after we hydrate the input.
-    if (sp.get("prompt")) router.replace("/app");
+    const value = new URLSearchParams(window.location.search).get("prompt");
+    if (value) {
+      setPrompt(value);
+      router.replace("/app");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
