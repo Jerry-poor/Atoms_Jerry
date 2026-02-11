@@ -1,0 +1,26 @@
+node_modules/
+.next/
+dist/
+.turbo/
+.env
+.env.local
+.env.*.local
+
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+.python-version
+
+.DS_Store
+Thumbs.db
+
+*.log
+*.db
+
+# Local docs/reports (requirements, UI docs, audit reports)
+代码检查报告.md
+*检查报告*.md
+atoms_ui_audit_report.docx
+UI documentation task.docx

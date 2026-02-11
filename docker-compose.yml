@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: atoms_jerry
+    ports:
+      # Use a non-default host port to avoid conflicts with other local Postgres instances.
+      - "${ATOMS_PG_PORT:-15432}:5432"
+    volumes:
+      - atoms_jerry_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d atoms_jerry"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Backend
+      ENV: ${ENV:-dev}
+      TEST_MODE: ${TEST_MODE:-false}
+      WEB_APP_URL: ${WEB_APP_URL:-http://localhost:13000}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-atoms_session}
+      SESSION_MAX_AGE_SECONDS: ${SESSION_MAX_AGE_SECONDS:-604800}
+      OAUTH_SESSION_SECRET: ${OAUTH_SESSION_SECRET:-dev-oauth-session-secret-change-me}
+
+      # Use internal Docker network address for DB.
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/atoms_jerry
+
+      # OAuth (optional in dev if you use password signup/login)
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+
+      # LLM (optional; workflow currently deterministic)
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_API_BASE: ${DEEPSEEK_API_BASE:-}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-}
+    ports:
+      - "${API_PORT:-18000}:8000"
+    command: >
+      sh -lc "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      - api
+    environment:
+      # Next.js rewrite proxy target (server-side). Browser still talks to localhost:${WEB_PORT}.
+      NEXT_PUBLIC_API_BASE_URL: http://api:8000
+      # Optional public links used by the marketing UI.
+      NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL:-/docs}
+      NEXT_PUBLIC_GITHUB_URL: ${NEXT_PUBLIC_GITHUB_URL:-https://github.com}
+      NEXT_PUBLIC_COMMUNITY_URL: ${NEXT_PUBLIC_COMMUNITY_URL:-https://atoms.dev}
+    ports:
+      - "${WEB_PORT:-13000}:13000"
+
+volumes:
+  atoms_jerry_pgdata:
