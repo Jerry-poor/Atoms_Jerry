@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLoginWithPassword } from "@/lib/auth";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const sp = useSearchParams();
   const returnTo = sp.get("returnTo") || "/app";
@@ -99,5 +99,13 @@ export default function LoginPage() {
         </p>
       </aside>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-xl px-4 py-12 text-sm text-muted-foreground">Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
